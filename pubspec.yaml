@@ -1,0 +1,40 @@
+name: somcatalanets
+description: "App per conèixer gent catalana!"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.3.3
+  permission_handler: ^12.0.1
+  provider: ^6.1.5+1
+  firebase_core: ^4.3.0
+  app_tracking_transparency: ^2.0.6+1
+  shared_preferences: ^2.5.4
+  flutter_launcher_icons: ^0.14.4
+  firebase_auth: ^6.1.3
+  image_picker: ^1.2.1
+  cloud_firestore: ^6.1.1
+  firebase_storage: ^13.0.5
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/barretina.png"
+  remove_alpha_ios: true
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
