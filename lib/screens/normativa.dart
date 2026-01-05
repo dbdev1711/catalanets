@@ -74,7 +74,7 @@ class _NormativaState extends State<Normativa> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('1. Benvinguda a Catalanets', style: AppStyles.normativaTitol),
-                      Text('Aquesta app és un espai segur per a la comunitat catalana. L’ús de l’aplicació implica l’acceptació d’aquestes normes.', style: AppStyles.normativaText),
+                      Text('Aquesta app és un espai segur per catalanoparlants. L’ús de l’aplicació implica l’acceptació d’aquestes normes.', style: AppStyles.normativaText),
                       AppStyles.sizedBoxHeight20,
                       Text('2. Respecte i Civisme', style: AppStyles.normativaTitol),
                       Text('No es permetrà cap tipus de falta de respecte, discriminació o contingut inadequat als xats o espais comuns.', style: AppStyles.normativaText),

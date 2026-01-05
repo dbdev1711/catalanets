@@ -44,9 +44,8 @@ class _LogInState extends State<LogIn> {
 
         if (user != null) {
           final hora = DateTime.now().hour;
-          String salutacio = (hora >= 6 && hora < 13)
-              ? "Bon dia!"
-              : (hora >= 13 && hora < 21) ? "Bona tarda!" : "Bona nit!";
+          String salutacio = (hora >= 6 && hora < 13) ?
+            "Bon dia!" : (hora >= 13 && hora < 21) ? "Bona tarda!" : "Bona nit!";
 
           showSnackBar(context, salutacio, color: Colors.green);
 
@@ -59,8 +58,8 @@ class _LogInState extends State<LogIn> {
       on FirebaseAuthException catch (e) {
         if (!mounted) return;
         setState(() => _isLoading = false);
-
         String missatgeError;
+
         switch (e.code) {
           case 'invalid-credential':
             missatgeError = "El correu o la contrasenya no són correctes.";
@@ -83,7 +82,6 @@ class _LogInState extends State<LogIn> {
           default:
             missatgeError = "Error en l'autenticació: ${e.code}";
         }
-
         showSnackBar(context, missatgeError, color: Colors.red);
       }
       catch (e) {
