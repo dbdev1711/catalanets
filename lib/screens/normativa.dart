@@ -2,8 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../styles/app_styles.dart';
-import '../utils/show_snack_bar.dart'; // Importem la teva utilitat
-import 'log_in.dart';
+import '../utils/bottom_nav_bar.dart';
+import '../utils/show_snack_bar.dart';
+import 'gent.dart';
 
 class Normativa extends StatefulWidget {
   const Normativa({super.key});
@@ -46,7 +47,7 @@ class _NormativaState extends State<Normativa> {
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LogIn()),
+        MaterialPageRoute(builder: (context) => const BottomNavBar()),
       );
     }
   }

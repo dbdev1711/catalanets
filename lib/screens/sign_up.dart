@@ -4,10 +4,9 @@ import '../styles/app_styles.dart';
 import '../firebase/auth_service.dart';
 import '../utils/show_snack_bar.dart';
 import '../main.dart';
-import 'gent.dart';
 
 class SignUp extends StatefulWidget {
-  const SignUp({Key? key}) : super(key: key);
+  const SignUp({super.key});
 
   @override
   State<SignUp> createState() => _SignUpState();
@@ -54,15 +53,14 @@ class _SignUpState extends State<SignUp> {
         setState(() => _isLoading = false);
 
         if (user != null) {
-          showSnackBar(context, "Benvingut/da a somCatalanets!", color: Colors.green);
+          showSnackBar(context, "Rep la benvinguda a Catalanets!", color: Colors.green);
 
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const Gent()),
+            MaterialPageRoute(builder: (context) => const App()),
             (route) => false,
           );
         }
-      }
-      on FirebaseAuthException catch (e) {
+      } on FirebaseAuthException catch (e) {
         if (!mounted) return;
         setState(() => _isLoading = false);
 
@@ -152,17 +150,11 @@ class _SignUpState extends State<SignUp> {
               ),
               AppStyles.sizedBoxHeight40,
               _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _handleSignUp,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(100, 50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _handleSignUp,
+                      child: const Text('Registrar-me'),
                     ),
-                    child: const Text('Registrar-me'),
-                  ),
             ],
           ),
         ),
