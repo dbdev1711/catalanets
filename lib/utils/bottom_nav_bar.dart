@@ -22,29 +22,31 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Forcem que el contingut no passi per sota de la barra [cite: 2026-01-05]
       extendBody: false,
       body: IndexedStack(
         index: _selectedIndex,
         children: _pantalles,
       ),
       bottomNavigationBar: Container(
-        // Afegim una vora superior per separar clarament del fons negre de Gent
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.white12, width: 0.5)),
+          border: Border(top: BorderSide(color: Colors.black12, width: 0.5)),
         ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed, // Vital per a Chrome [cite: 2026-01-05]
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.orange,
-          unselectedItemColor: Colors.grey,
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-            BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Gent'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Xats'),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.white,
+            selectedItemColor: Colors.orange,
+            unselectedItemColor: Colors.grey,
+            currentIndex: _selectedIndex,
+            elevation: 0,
+            onTap: (index) => setState(() => _selectedIndex = index),
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+              BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Gent'),
+              BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Xats'),
+            ],
+          ),
         ),
       ),
     );
