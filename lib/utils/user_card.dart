@@ -8,19 +8,17 @@ class UserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sincronització de fotos: usem photoUrls que és la llista de Firestore [cite: 2026-01-05]
     final List<dynamic> photos = userData['photoUrls'] ??
-                                (userData['photoUrl'] != null ? [userData['photoUrl']] : []);
+        (userData['photoUrl'] != null ? [userData['photoUrl']] : []);
+    final List<dynamic> interessos = userData['interessos'] ?? [];
 
     return GestureDetector(
-      // CRIDA AL NOU WIDGET: Obrim el detall que hem creat abans [cite: 2026-01-05]
       onTap: () => DetallPerfil.mostrar(context, userData),
       child: SizedBox(
         height: double.infinity,
         width: double.infinity,
         child: Stack(
           children: [
-            // 1. Galeria d'imatges
             PageView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: photos.length,
@@ -36,7 +34,6 @@ class UserCard extends StatelessWidget {
               },
             ),
 
-            // 2. Indicadors de fotos
             if (photos.length > 1)
               Positioned(
                 top: 20,
@@ -56,7 +53,6 @@ class UserCard extends StatelessWidget {
                 ),
               ),
 
-            // 3. Informació bàsica (Nom i Edat) [cite: 2026-01-05]
             Positioned(
               bottom: 0,
               left: 0,
@@ -67,7 +63,7 @@ class UserCard extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.85)],
+                    colors: [Colors.transparent, Colors.black.withOpacity(0.9)],
                   ),
                 ),
                 child: Column(
@@ -83,12 +79,42 @@ class UserCard extends StatelessWidget {
                         shadows: [Shadow(blurRadius: 10, color: Colors.black)],
                       ),
                     ),
-                    if (userData['tipusRelacio'] != null)
-                      Text(
-                        userData['tipusRelacio'],
-                        style: const TextStyle(color: Colors.white70, fontSize: 18),
+
+                    if (userData['ubicacioNom'] != null && userData['ubicacioNom'].toString().isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.location_on, color: Colors.orange, size: 18),
+                            const SizedBox(width: 4),
+                            Text(
+                              userData['ubicacioNom'],
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ],
+                        ),
                       ),
-                    const SizedBox(height: 8),
+
+                    const SizedBox(height: 12),
+
+                    if (interessos.isNotEmpty)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: interessos.take(3).map((interes) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            interes.toString(),
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                          ),
+                        )).toList(),
+                      ),
+
+                    const SizedBox(height: 12),
                     const Text(
                       "Toca per veure més detalls",
                       style: TextStyle(

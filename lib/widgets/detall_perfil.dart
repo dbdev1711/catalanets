@@ -8,7 +8,7 @@ class DetallPerfil {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.75,
+          initialChildSize: 0.85,
           maxChildSize: 0.95,
           minChildSize: 0.5,
           builder: (context, scrollController) {
@@ -23,7 +23,6 @@ class DetallPerfil {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Barra superior per estirar
                     Center(
                       child: Container(
                         width: 40,
@@ -36,7 +35,39 @@ class DetallPerfil {
                     ),
                     const SizedBox(height: 25),
 
-                    // Nom i Edat [cite: 2025-12-30, 2026-01-05]
+                    if (userData['photoUrls'] != null && (userData['photoUrls'] as List).isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 25),
+                        child: SizedBox(
+                          height: 350,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: const ClampingScrollPhysics(), // Millor per a web/Chrome
+                            itemCount: (userData['photoUrls'] as List).length,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                width: 280,
+                                margin: const EdgeInsets.only(right: 15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  image: DecorationImage(
+                                    image: NetworkImage(userData['photoUrls'][index]),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.5),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    )
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+
                     Text(
                       "${userData['nom'] ?? 'Anònim'}, ${userData['edat'] ?? '?'}",
                       style: const TextStyle(
@@ -45,9 +76,24 @@ class DetallPerfil {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 20),
 
-                    // Icones de detalls [cite: 2025-12-30, 2026-01-05]
+                    if (userData['ubicacioNom'] != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.location_on, color: Colors.orange[800], size: 18),
+                            const SizedBox(width: 5),
+                            Text(
+                              userData['ubicacioNom'],
+                              style: TextStyle(color: Colors.grey[400], fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    const SizedBox(height: 25),
+
                     _buildInfoTile(Icons.search, "Busca", userData['tipusRelacio']),
                     _buildInfoTile(Icons.policy, "Política", userData['politica']),
                     _buildInfoTile(Icons.auto_awesome, "Religió", userData['religio']),
@@ -65,7 +111,6 @@ class DetallPerfil {
                     ),
                     const SizedBox(height: 15),
 
-                    // Interessos amb taronja intens [cite: 2026-01-05]
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -74,16 +119,8 @@ class DetallPerfil {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 8),
                                 decoration: BoxDecoration(
-                                  // Taronja intens pur per a millor visibilitat
                                   color: Colors.orange[800],
                                   borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.3),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    )
-                                  ],
                                 ),
                                 child: Text(
                                   interes.toString(),

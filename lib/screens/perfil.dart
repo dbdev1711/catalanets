@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import '../firebase/auth_service.dart';
 
 class Perfil extends StatefulWidget {
@@ -21,15 +23,17 @@ class _PerfilState extends State<Perfil> {
   List<String> _existingUrls = [];
   bool _isSaving = false;
   bool _isLoading = true;
+  bool _isGettingLocation = false;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _edatController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
 
-  String? _genere, _interes, _vullConeixer, _tipusRelacio, _fumes, _beus, _drogues, _tensFills, _volsFills, _religio, _politica;
+  String? _genere, _interes, _vullConeixer, _tipusRelacio, _fumes, _beus, _tensFills, _volsFills, _religio, _politica;
   List<String> _interessosSeleccionats = [];
 
   final List<Map<String, String>> _opcionsInteressos = [
-    {'nom': 'Castellers', 'emoji': '🏰'}, {'nom': 'Platja', 'emoji': '🏖️'},
+    {'nom': 'Cinema', 'emoji': '🏰'}, {'nom': 'Platja', 'emoji': '🏖️'},
     {'nom': 'Escalada', 'emoji': '🧗'}, {'nom': 'Gimnàs', 'emoji': '🏋️'},
     {'nom': 'Nutrició', 'emoji': '🥗'}, {'nom': 'Futbol', 'emoji': '⚽'},
     {'nom': 'Motos', 'emoji': '🏍️'}, {'nom': 'Música', 'emoji': '🎶'},
@@ -55,13 +59,13 @@ class _PerfilState extends State<Perfil> {
         setState(() {
           _nameController.text = dades['nom'] ?? "";
           _edatController.text = dades['edat']?.toString() ?? "";
+          _locationController.text = dades['ubicacioNom'] ?? "";
           _genere = dades['genere'];
           _interes = dades['interes'];
           _vullConeixer = dades['vullConeixer'];
           _tipusRelacio = dades['tipusRelacio'];
           _fumes = dades['fumes'];
           _beus = dades['beus'];
-          _drogues = dades['drogues'];
           _tensFills = dades['tensFills'];
           _volsFills = dades['volsFills'];
           _religio = dades['religio'];
@@ -72,6 +76,44 @@ class _PerfilState extends State<Perfil> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _obtenirUbicacio() async {
+    setState(() => _isGettingLocation = true);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high
+      );
+
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        setState(() {
+          _locationController.text = "${place.locality}, ${place.administrativeArea}";
+        });
+      }
+    } catch (e) {
+      // Imprimim l'error per consola per a depuració [cite: 2026-01-08]
+      print("📍 Error en geolocalització: $e");
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error obtenint ubicació: $e'))
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGettingLocation = false);
     }
   }
 
@@ -100,6 +142,7 @@ class _PerfilState extends State<Perfil> {
       final Map<String, dynamic> dades = {
         'nom': _nameController.text.trim(),
         'edat': _edatController.text.trim(),
+        'ubicacioNom': _locationController.text.trim(),
         'genere': _genere,
         'interes': _interes,
         'vullConeixer': _vullConeixer,
@@ -107,7 +150,6 @@ class _PerfilState extends State<Perfil> {
         'interessos': _interessosSeleccionats,
         'fumes': _fumes,
         'beus': _beus,
-        'drogues': _drogues,
         'tensFills': _tensFills,
         'volsFills': _volsFills,
         'religio': _religio,
@@ -131,14 +173,12 @@ class _PerfilState extends State<Perfil> {
 
   @override
   Widget build(BuildContext context) {
-    // Retornem un Container/Material per evitar que el Scaffold de Perfil tapi la BottomNavBar del pare [cite: 2026-01-05]
     if (_isLoading) return const Material(child: Center(child: CircularProgressIndicator(color: Colors.orange)));
 
     return Material(
       color: Colors.white,
       child: Column(
         children: [
-          // Capçalera manual per substituir l'AppBar del Scaffold
           AppBar(
             title: const Text('Perfil'),
             automaticallyImplyLeading: false,
@@ -177,6 +217,17 @@ class _PerfilState extends State<Perfil> {
                   const SizedBox(height: 30),
                   TextField(controller: _nameController, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: '👤 Nom', border: OutlineInputBorder())),
                   const SizedBox(height: 20),
+                  TextField(
+                    controller: _locationController,
+                    decoration: InputDecoration(
+                      labelText: '📍 Ubicació',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: _isGettingLocation
+                        ? const Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2))
+                        : IconButton(icon: const Icon(Icons.my_location), onPressed: _obtenirUbicacio),
+                    )
+                  ),
+                  const SizedBox(height: 20),
                   TextField(controller: _edatController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '🎂 Edat', border: OutlineInputBorder())),
                   const SizedBox(height: 20),
                   _buildDropdown('Gènere', '🌈', _genere, ['Dona', 'Home', 'Non-binari'], (v) => setState(() => _genere = v)),
@@ -192,8 +243,6 @@ class _PerfilState extends State<Perfil> {
                     }).toList()),
                   const SizedBox(height: 25),
                   _buildDropdown('Fumes?', '🚬', _fumes, ['Sí', 'No', 'Socialment'], (v) => setState(() => _fumes = v)),
-                  _buildDropdown('Beus?', '🍺', _beus, ['Sí', 'No', 'Socialment'], (v) => setState(() => _beus = v)),
-                  _buildDropdown('Drogues?', '💊', _drogues, ['Sí', 'No'], (v) => setState(() => _drogues = v)),
                   _buildDropdown('Tens fills?', '👶', _tensFills, ['Sí', 'No'], (v) => setState(() => _tensFills = v)),
                   _buildDropdown('Vols fills?', '🍼', _volsFills, ['Sí', 'No', 'No ho sé'], (v) => setState(() => _volsFills = v)),
                   _buildDropdown('Religió', '🙏', _religio, ['Ateu/Agnòstic', 'Catòlic', 'Musulmà', 'Altres'], (v) => setState(() => _religio = v)),
@@ -215,7 +264,7 @@ class _PerfilState extends State<Perfil> {
 
   Widget _buildDropdown(String label, String emoji, String? value, List<String> options, Function(String?) onChanged) {
     return Padding(padding: const EdgeInsets.only(bottom: 20), child: DropdownButtonFormField<String>(
-        initialValue: options.contains(value) ? value : null,
+        value: options.contains(value) ? value : null,
         decoration: InputDecoration(labelText: '$emoji $label', border: const OutlineInputBorder()),
         items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
         onChanged: onChanged,
