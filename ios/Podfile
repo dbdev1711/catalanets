@@ -1,3 +1,6 @@
+# Marcador de posició per a Flutter
+include_flutter_podfile_setup
+
 platform :ios, '15.0'
 
 target 'Runner' do
