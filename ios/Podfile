@@ -1,29 +1,16 @@
-# Importació necessària per a les funcions de Flutter
-require_relative '../.flutter-plugins-dependencies'
-
-def flutter_install_all_ios_pods(ios_application_path = nil)
-  native_additions_path = File.join(ios_application_path, '..', '.flutter-plugins-dependencies')
-  if File.exist?(native_additions_path)
-    sed_command = "sed -n 's/.*\"ios\":\[\(.*\)\].*/\1/p' #{native_additions_path} | tr ',' '\n' | xargs"
-    pods = `#{sed_command}`.split
-    pods.each do |pod|
-      pod_name = pod.gsub('"', '').strip
-      pod pod_name, :path => File.join(ios_application_path, '..', '.symlinks', 'plugins', pod_name, 'ios')
-    end
-  end
-end
-
 platform :ios, '15.0'
 
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  # Aquest bloc permet que Flutter gestioni els seus plugins automàticament
+  # sense necessitar fitxers externs de configuració en aquest punt.
 end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target) if defined?(flutter_additional_ios_build_settings)
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
     end
