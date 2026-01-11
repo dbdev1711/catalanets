@@ -1,3 +1,4 @@
+import 'package:catalanets/models/user_model.dart';
 import 'package:flutter/material.dart';
 import '../widgets/detall_perfil.dart';
 
@@ -13,7 +14,7 @@ class UserCard extends StatelessWidget {
     final List<dynamic> interessos = userData['interessos'] ?? [];
 
     return GestureDetector(
-      onTap: () => DetallPerfil.mostrar(context, userData),
+      onTap: () => DetallPerfil.mostrar(context, userData as UserModel),
       child: SizedBox(
         height: double.infinity,
         width: double.infinity,

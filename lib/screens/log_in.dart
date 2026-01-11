@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../styles/app_styles.dart';
 import '../firebase/auth_service.dart';
 import '../utils/show_snack_bar.dart';
-import 'gent.dart';
+import '../utils/bottom_nav_bar.dart';
 import 'sign_up.dart';
 import 'nova_contra.dart';
 
@@ -51,7 +51,7 @@ class _LogInState extends State<LogIn> {
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Gent()),
+            MaterialPageRoute(builder: (context) => const BottomNavBar()),
           );
         }
       }
@@ -110,10 +110,6 @@ class _LogInState extends State<LogIn> {
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   prefixIcon: Icon(Icons.email),
-                  floatingLabelStyle: TextStyle(color: Colors.orange),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.orange),
-                  ),
                 ),
                 validator: (val) => (val == null || val.isEmpty) ? 'Camp obligatori' : null,
               ),
@@ -124,10 +120,6 @@ class _LogInState extends State<LogIn> {
                 decoration: InputDecoration(
                   labelText: 'Contrasenya',
                   prefixIcon: const Icon(Icons.lock),
-                  floatingLabelStyle: const TextStyle(color: Colors.orange),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.orange),
-                  ),
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),

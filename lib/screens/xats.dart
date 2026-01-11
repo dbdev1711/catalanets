@@ -5,17 +5,11 @@ class Xats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Retornem Material per evitar el conflicte de Scaffolds que tapa la barra a Chrome [cite: 2026-01-05]
     return Material(
       color: Colors.white,
       child: Column(
         children: [
-          // Capçalera manual per substituir l'AppBar [cite: 2026-01-05]
-          AppBar(
-            title: const Text('Xats'),
-            automaticallyImplyLeading: false, // Evita que surti la fletxa de tornar enrere
-          ),
-          const Expanded(
+          const SafeArea(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

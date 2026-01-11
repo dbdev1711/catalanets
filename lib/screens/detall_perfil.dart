@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 
 class DetallPerfil {
+
   static void mostrar(BuildContext context, UserModel user) {
     showModalBottomSheet(
       context: context,
@@ -43,7 +44,6 @@ class DetallPerfil {
                           height: 350,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            physics: const ClampingScrollPhysics(),
                             itemCount: user.photoUrls.length,
                             itemBuilder: (context, index) {
                               return Container(
@@ -55,13 +55,6 @@ class DetallPerfil {
                                     image: NetworkImage(user.photoUrls[index]),
                                     fit: BoxFit.cover,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.5),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 5),
-                                    )
-                                  ],
                                 ),
                               );
                             },
@@ -77,29 +70,21 @@ class DetallPerfil {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const SizedBox(height: 15),
 
-                    // Suposem que afegirem ubicacioNom al model o la traurem del GeoPoint
-                    const SizedBox(height: 25),
-
-                    // Nota: Caldrà afegir aquests camps al UserModel si vols que funcionin
-                    _buildInfoTile(Icons.search, "Busca", "Relació"), 
                     _buildInfoTile(Icons.notes, "Bio", user.bio),
-                    
+
                     const SizedBox(height: 30),
                     const Text(
                       "Interessos",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 15),
 
-                    // Per ara el model no té interessos, caldrà afegir-los
-                    const Text("Afegeix interessos al model per veure'ls aquí", 
-                      style: TextStyle(color: Colors.grey)),
-
+                    Wrap(
+                      spacing: 10,
+                      children: user.interessos.map((i) => Chip(label: Text(i))).toList(),
+                    ),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -111,30 +96,12 @@ class DetallPerfil {
     );
   }
 
-  static Widget _buildInfoTile(IconData icon, String title, dynamic value) {
-    if (value == null || value.toString().isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.orange[700], size: 24),
-          const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-              Text(
-                value.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+  static Widget _buildInfoTile(IconData icon, String title, String value) {
+    if (value.isEmpty) return const SizedBox.shrink();
+    return ListTile(
+      leading: Icon(icon, color: Colors.orange),
+      title: Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+      subtitle: Text(value, style: const TextStyle(color: Colors.white, fontSize: 16)),
     );
   }
 }

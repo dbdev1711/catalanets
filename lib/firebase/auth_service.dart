@@ -1,82 +1,94 @@
-import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  Future<UserCredential?> signUp(String email, String password) async {
-    try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email, password: password,
-      );
-      return userCredential;
-    } catch (e) { rethrow; }
+  Future<UserCredential?> signIn(String email, String password) async {
+    return await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future<UserCredential?> signIn(String email, String password) async {
-    try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email, password: password,
-      );
-      return userCredential;
-    } catch (e) { rethrow; }
+  Future<UserCredential?> signUp(String email, String password) async {
+    return await _auth.createUserWithEmailAndPassword(email: email, password: password);
   }
 
   Future<void> sendPasswordReset(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-    } catch (e) { rethrow; }
+    await _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> updateFullProfile({
     required String uid,
     required Map<String, dynamic> data,
-    required List<File?> imageFiles,
+    XFile? imageFile,
   }) async {
-    List<String> imageUrls = [];
+    List<String> photoUrls = List<String>.from(data['photoUrls'] ?? []);
 
-    // Com que les regles prohibeixen el 'read' al propi usuari,
-    // no podem fer un .get() aquí si l'usuari és qui executa l'app.
-    // Si necessites mantenir URLs antigues, passa-les com a argument 'data'.
+    if (imageFile != null) {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference ref = _storage.ref().child('user_images').child(uid).child(fileName);
 
-    for (int i = 0; i < imageFiles.length; i++) {
-      File? file = imageFiles[i];
-      if (file != null) {
-        try {
-          final storageRef = _storage.ref().child('users/$uid/foto_$i.jpg');
+      final bytes = await imageFile.readAsBytes();
 
-          final uploadTask = await storageRef.putFile(
-            file,
-            SettableMetadata(contentType: 'image/jpeg'),
-          );
+      await ref.putData(bytes);
 
-          String url = await uploadTask.ref.getDownloadURL();
-          imageUrls.add(url);
-        } catch (e) {
-          print("Error pujant foto $i: $e");
-        }
-      }
+      String url = await ref.getDownloadURL();
+      photoUrls.add(url);
     }
 
-    try {
-      final Map<String, dynamic> finalData = {
-        ...data,
-        'ultimaActualitzacio': FieldValue.serverTimestamp(),
-      };
+    data['photoUrls'] = photoUrls;
 
-      if (imageUrls.isNotEmpty) {
-        finalData['photoUrls'] = imageUrls;
-        finalData['photoUrl'] = imageUrls[0];
-      }
-
-      await _db.collection('users').doc(uid).set(finalData, SetOptions(merge: true));
-    } catch (e) {
-      print("Error guardant perfil a Firestore: $e");
-      rethrow;
-    }
+    await _firestore.collection('users').doc(uid).set(data, SetOptions(merge: true));
   }
+
+  Future<bool> enviarLike(String toUid) async {
+    final fromUid = _auth.currentUser?.uid;
+    if (fromUid == null) return false;
+    await _firestore.collection('likes').doc('${fromUid}_$toUid').set({
+      'from': fromUid,
+      'to': toUid,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+    final matchDoc = await _firestore.collection('likes').doc('${toUid}_$fromUid').get();
+    if (matchDoc.exists) {
+      await _firestore.collection('matches').doc('${fromUid}_$toUid').set({
+        'users': [fromUid, toUid],
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> bloquejarUsuari(String blockedUid) async {
+    final currentUid = _auth.currentUser?.uid;
+    if (currentUid == null) return;
+    await _firestore.collection('users').doc(currentUid).update({
+      'bloquejats': FieldValue.arrayUnion([blockedUid]),
+    });
+  }
+
+  Future<void> reportarUsuari({required String reportedUid, required String motiu}) async {
+    final currentUid = _auth.currentUser?.uid;
+    if (currentUid == null) return;
+    await _firestore.collection('reports').add({
+      'from': currentUid,
+      'reportedUser': reportedUid,
+      'motiu': motiu,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> eliminarCompte() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    final uid = user.uid;
+    await _firestore.collection('users').doc(uid).delete();
+    await user.delete();
+  }
+
+  Future<void> signOut() async => await _auth.signOut();
 }
