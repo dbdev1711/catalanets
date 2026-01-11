@@ -1,11 +1,12 @@
+require_relative '../.flutter-plugins-dependencies'
+
 platform :ios, '15.0'
 
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  # Aquest bloc permet que Flutter gestioni els seus plugins automàticament
-  # sense necessitar fitxers externs de configuració en aquest punt.
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
 post_install do |installer|
