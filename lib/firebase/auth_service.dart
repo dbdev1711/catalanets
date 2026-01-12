@@ -45,21 +45,31 @@ class AuthService {
   Future<void> updateFullProfile({
     required String uid,
     required Map<String, dynamic> data,
-    XFile? imageFile,
+    required List<dynamic> photos,
   }) async {
-    List<String> photoUrls = List<String>.from(data['photoUrls'] ?? []);
+    List<String> finalUrls = [];
 
-    if (imageFile != null) {
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      Reference ref = _storage.ref().child('users').child(uid).child(fileName);
-      final bytes = await imageFile.readAsBytes();
-      await ref.putData(bytes);
-      String url = await ref.getDownloadURL();
-      photoUrls.add(url);
+    for (var item in photos) {
+      if (item is XFile) {
+        String fileName = "${DateTime.now().millisecondsSinceEpoch}_${item.name}";
+        Reference ref = _storage.ref().child('users').child(uid).child(fileName);
+
+        final bytes = await item.readAsBytes();
+        await ref.putData(bytes);
+
+        String url = await ref.getDownloadURL();
+        finalUrls.add(url);
+      } else if (item is String) {
+        finalUrls.add(item);
+      }
     }
 
-    data['photoUrls'] = photoUrls;
-    await _firestore.collection('users').doc(uid).set(data, SetOptions(merge: true));
+    data['photoUrls'] = finalUrls;
+
+    await _firestore.collection('users').doc(uid).set(
+      data,
+      SetOptions(merge: true)
+    );
   }
 
   Future<void> signOut() async => await _auth.signOut();

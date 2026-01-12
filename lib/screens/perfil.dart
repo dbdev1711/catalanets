@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -63,6 +62,7 @@ class _PerfilState extends State<Perfil> {
           _interessosSeleccionats = List<String>.from(data['interessos'] ?? []);
 
           List<String> savedPhotos = List<String>.from(data['photoUrls'] ?? []);
+          _photos = List.filled(4, null);
           for (int i = 0; i < savedPhotos.length && i < 4; i++) {
             _photos[i] = savedPhotos[i];
           }
@@ -99,12 +99,15 @@ class _PerfilState extends State<Perfil> {
           'nom': _nomController.text.trim(),
           'edat': int.tryParse(_edatController.text) ?? 0,
           'interessos': _interessosSeleccionats,
-          'fuma': _fuma, 'beu': _beu, 'exercici': _exercici,
-          'animals': _animals, 'fills': _fills, 'volFills': _volFills,
+          'fuma': _fuma,
+          'beu': _beu,
+          'exercici': _exercici,
+          'animals': _animals,
+          'fills': _fills,
+          'volFills': _volFills,
           'alimentacio': _alimentacio,
-          'photoUrls': _photos.whereType<String>().toList(),
         },
-        imageFile: _photos.firstWhere((p) => p is XFile, orElse: () => null),
+        photos: _photos,
       );
       if (mounted) {
         showSnackBar(context, "Perfil actualitzat!", color: Colors.green);

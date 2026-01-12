@@ -5,6 +5,13 @@ class UserModel {
   final String bio;
   final List<String> photoUrls;
   final List<String> interessos;
+  final String fuma;
+  final String beu;
+  final String exercici;
+  final String animals;
+  final String fills;
+  final String volFills;
+  final String alimentacio;
 
   UserModel({
     required this.uid,
@@ -13,6 +20,13 @@ class UserModel {
     required this.bio,
     required this.photoUrls,
     required this.interessos,
+    required this.fuma,
+    required this.beu,
+    required this.exercici,
+    required this.animals,
+    required this.fills,
+    required this.volFills,
+    required this.alimentacio,
   });
 
   Map<String, dynamic> toJson() {
@@ -23,6 +37,13 @@ class UserModel {
       'bio': bio,
       'photoUrls': photoUrls,
       'interessos': interessos,
+      'fuma': fuma,
+      'beu': beu,
+      'exercici': exercici,
+      'animals': animals,
+      'fills': fills,
+      'volFills': volFills,
+      'alimentacio': alimentacio,
     };
   }
 
@@ -34,6 +55,13 @@ class UserModel {
       bio: map['bio'] as String? ?? '',
       photoUrls: List<String>.from(map['photoUrls'] ?? []),
       interessos: List<String>.from(map['interessos'] ?? []),
+      fuma: map['fuma'] as String? ?? '',
+      beu: map['beu'] as String? ?? '',
+      exercici: map['exercici'] as String? ?? '',
+      animals: map['animals'] as String? ?? '',
+      fills: map['fills'] as String? ?? '',
+      volFills: map['volFills'] as String? ?? '',
+      alimentacio: map['alimentacio'] as String? ?? '',
     );
   }
 
