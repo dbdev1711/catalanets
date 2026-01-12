@@ -45,14 +45,18 @@
     <true/>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
+
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Catalanets necessita la teva ubicació per mostrar-te persones de la teva zona.</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Catalanets necessita la teva ubicació per trobar persones a prop teu fins i tot en segon pla.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Catalanets necessita la teva ubicació per mostrar-te persones properes tant si l'app està oberta com en segon pla.</string>
+
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Necessitem accedir a la teva galeria perquè puguis pujar fotos al teu perfil.</string>
     <key>NSCameraUsageDescription</key>
-    <string>Necessitem accedir a la càmera perquè puguis fer-te fotos pel perfil.</string>
+    <string>Necessitem accedir a la càmera perquè puguis fer-te fotos per al perfil.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Necessitem accedir al micròfon per a vídeos.</string>
 </dict>
