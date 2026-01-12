@@ -12,8 +12,24 @@ class AuthService {
     return await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future<UserCredential?> signUp(String email, String password) async {
-    return await _auth.createUserWithEmailAndPassword(email: email, password: password);
+  Future<UserCredential?> signUp(String email, String password, String nom) async {
+    UserCredential credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password
+    );
+
+    if (credential.user != null) {
+      await _firestore.collection('users').doc(credential.user!.uid).set({
+        'uid': credential.user!.uid,
+        'email': email,
+        'nom': nom,
+        'edat': 18,
+        'bio': '',
+        'interessos': [],
+        'photoUrls': [],
+      });
+    }
+    return credential;
   }
 
   Future<void> sendPasswordReset(String email) async {
@@ -29,10 +45,9 @@ class AuthService {
 
     if (imageFile != null) {
       String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      Reference ref = _storage.ref().child('user_images').child(uid).child(fileName);
+      Reference ref = _storage.ref().child('users').child(uid).child(fileName);
 
       final bytes = await imageFile.readAsBytes();
-
       await ref.putData(bytes);
 
       String url = await ref.getDownloadURL();

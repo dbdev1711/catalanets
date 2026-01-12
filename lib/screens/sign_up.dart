@@ -4,7 +4,6 @@ import '../styles/app_styles.dart';
 import '../firebase/auth_service.dart';
 import '../utils/show_snack_bar.dart';
 import '../main.dart';
-import '../models/user_model.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -42,24 +41,10 @@ class _SignUpState extends State<SignUp> {
         final credential = await _auth.signUp(
           _emailController.text.trim(),
           _passwordController.text.trim(),
+          _nomController.text.trim(),
         );
 
         if (credential != null && credential.user != null) {
-          final nouUsuari = UserModel(
-            uid: credential.user!.uid,
-            nom: _nomController.text.trim(),
-            edat: 18,
-            bio: '',
-            photoUrls: [],
-            interessos: [],
-          );
-
-          await _auth.updateFullProfile(
-            uid: nouUsuari.uid,
-            data: nouUsuari.toJson(),
-            imageFile: null, // Canviat de 'imageFiles: []' a 'imageFile: null'
-          );
-
           if (!mounted) return;
           showSnackBar(context, "Benvingut/da a Catalanets!", color: Colors.green);
 
@@ -134,6 +119,10 @@ class _SignUpState extends State<SignUp> {
                 decoration: InputDecoration(
                   labelText: 'Confirma la contrasenya',
                   prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                  ),
                 ),
                 validator: (val) => (val != _passwordController.text) ? 'No coincideixen' : null,
               ),
