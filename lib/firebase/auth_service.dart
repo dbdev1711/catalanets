@@ -23,10 +23,16 @@ class AuthService {
         'uid': credential.user!.uid,
         'email': email,
         'nom': nom,
-        'edat': 18,
-        'bio': '',
+        'edat': 0,
         'interessos': [],
         'photoUrls': [],
+        'fuma': '',
+        'beu': '',
+        'exercici': '',
+        'animals': '',
+        'fills': '',
+        'volFills': '',
+        'alimentacio': '',
       });
     }
     return credential;
@@ -46,63 +52,14 @@ class AuthService {
     if (imageFile != null) {
       String fileName = DateTime.now().millisecondsSinceEpoch.toString();
       Reference ref = _storage.ref().child('users').child(uid).child(fileName);
-
       final bytes = await imageFile.readAsBytes();
       await ref.putData(bytes);
-
       String url = await ref.getDownloadURL();
       photoUrls.add(url);
     }
 
     data['photoUrls'] = photoUrls;
-
     await _firestore.collection('users').doc(uid).set(data, SetOptions(merge: true));
-  }
-
-  Future<bool> enviarLike(String toUid) async {
-    final fromUid = _auth.currentUser?.uid;
-    if (fromUid == null) return false;
-    await _firestore.collection('likes').doc('${fromUid}_$toUid').set({
-      'from': fromUid,
-      'to': toUid,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-    final matchDoc = await _firestore.collection('likes').doc('${toUid}_$fromUid').get();
-    if (matchDoc.exists) {
-      await _firestore.collection('matches').doc('${fromUid}_$toUid').set({
-        'users': [fromUid, toUid],
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-      return true;
-    }
-    return false;
-  }
-
-  Future<void> bloquejarUsuari(String blockedUid) async {
-    final currentUid = _auth.currentUser?.uid;
-    if (currentUid == null) return;
-    await _firestore.collection('users').doc(currentUid).update({
-      'bloquejats': FieldValue.arrayUnion([blockedUid]),
-    });
-  }
-
-  Future<void> reportarUsuari({required String reportedUid, required String motiu}) async {
-    final currentUid = _auth.currentUser?.uid;
-    if (currentUid == null) return;
-    await _firestore.collection('reports').add({
-      'from': currentUid,
-      'reportedUser': reportedUid,
-      'motiu': motiu,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Future<void> eliminarCompte() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-    final uid = user.uid;
-    await _firestore.collection('users').doc(uid).delete();
-    await user.delete();
   }
 
   Future<void> signOut() async => await _auth.signOut();

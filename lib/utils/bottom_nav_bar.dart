@@ -14,7 +14,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   int _selectedIndex = 1;
 
   final List<Widget> _pantalles = [
-    const PerfilScreen(),
+    const Perfil(),
     const GentScreen(),
     const MissatgesScreen(),
   ];

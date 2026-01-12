@@ -72,68 +72,71 @@ class _SignUpState extends State<SignUp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              const Text('Nou compte', style: AppStyles.nouCompte),
-              AppStyles.sizedBoxHeight20,
-              TextFormField(
-                controller: _nomController,
-                decoration: const InputDecoration(
-                  labelText: 'Com et dius?',
-                  prefixIcon: Icon(Icons.person),
-                ),
-                validator: (val) => (val == null || val.isEmpty) ? 'Digue\'ns el teu nom' : null,
-              ),
-              AppStyles.sizedBoxHeight20,
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                ),
-                validator: (val) => (val == null || !val.contains('@')) ? 'Email invàlid' : null,
-              ),
-              AppStyles.sizedBoxHeight20,
-              TextFormField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Contrasenya',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                FittedBox(child: const Text('Nou compte', style: AppStyles.nouCompte)),
+                AppStyles.sizedBoxHeight20,
+                TextFormField(
+                  textCapitalization: TextCapitalization.words,
+                  controller: _nomController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nom',
+                    prefixIcon: Icon(Icons.person),
                   ),
+                  validator: (val) => (val == null || val.isEmpty) ? 'Escriu el teu nom' : null,
                 ),
-                validator: (val) => (val == null || val.length < 6) ? 'Mínim 6 caràcters' : null,
-              ),
-              AppStyles.sizedBoxHeight20,
-              TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: _obscureConfirm,
-                decoration: InputDecoration(
-                  labelText: 'Confirma la contrasenya',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                AppStyles.sizedBoxHeight20,
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
                   ),
+                  validator: (val) => (val == null || !val.contains('@')) ? 'Email invàlid' : null,
                 ),
-                validator: (val) => (val != _passwordController.text) ? 'No coincideixen' : null,
-              ),
-              AppStyles.sizedBoxHeight40,
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _handleSignUp,
-                      child: const Text('Registrar-me'),
+                AppStyles.sizedBoxHeight20,
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Contrasenya',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
-            ],
+                  ),
+                  validator: (val) => (val == null || val.length < 6) ? 'Mínim 6 caràcters' : null,
+                ),
+                AppStyles.sizedBoxHeight20,
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirm,
+                  decoration: InputDecoration(
+                    labelText: 'Confirma la contrasenya',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
+                  ),
+                  validator: (val) => (val != _passwordController.text) ? 'No coincideixen' : null,
+                ),
+                AppStyles.sizedBoxHeight40,
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _handleSignUp,
+                        child: const Text('Registrar-me'),
+                      ),
+              ],
+            ),
           ),
         ),
       ),

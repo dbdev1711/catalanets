@@ -1,7 +1,7 @@
 class UserModel {
   final String uid;
   final String nom;
-  final int edat;
+  final int? edat;
   final String bio;
   final List<String> photoUrls;
   final List<String> interessos;
@@ -39,7 +39,7 @@ class UserModel {
 
   static int _parseEdat(dynamic edat) {
     if (edat is int) return edat;
-    if (edat is String) return int.tryParse(edat) ?? 18;
-    return 18;
+    if (edat is String) return int.tryParse(edat) ?? 0;
+    return 0;
   }
 }

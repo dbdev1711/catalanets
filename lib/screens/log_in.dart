@@ -47,7 +47,7 @@ class _LogInState extends State<LogIn> {
           String salutacio = (hora >= 6 && hora < 13) ?
             "Bon dia!" : (hora >= 13 && hora < 21) ? "Bona tarda!" : "Bona nit!";
 
-          showSnackBar(context, salutacio, color: Colors.green);
+          showSnackBar(context, salutacio, color: Colors.amberAccent);
 
           Navigator.pushReplacement(
             context,
@@ -102,7 +102,7 @@ class _LogInState extends State<LogIn> {
           child: Column(
             children: [
               AppStyles.sizedBoxHeight80,
-              const Center(child: Text('Hola!', style: AppStyles.benvinguda)),
+              const Center(child: FittedBox(child: Text('Hola!', style: AppStyles.benvinguda))),
               AppStyles.sizedBoxHeight20,
               TextFormField(
                 controller: _emailController,

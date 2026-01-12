@@ -7,7 +7,7 @@ import '../utils/show_snack_bar.dart';
 class NovaContra extends StatefulWidget {
   final String emailPrevi;
 
-  const NovaContra({Key? key, this.emailPrevi = ""}) : super(key: key);
+  const NovaContra({super.key, this.emailPrevi = ""});
 
   @override
   State<NovaContra> createState() => _NovaContraState();
@@ -36,37 +36,39 @@ class _NovaContraState extends State<NovaContra> {
       setState(() => _isLoading = true);
 
       try {
-        // Crida al mètode que hem afegit a l'AuthService
         await _auth.sendPasswordReset(_emailController.text.trim());
 
         if (!mounted) return;
         setState(() => _isLoading = false);
-        showSnackBar(context, "Revisa la teva bústia o l'spam passats uns minuts",
-            color: Colors.green);
+
+        showSnackBar(
+          context,
+          "Enllaç enviat. Revisa la bústia d'entrada o l'spam.",
+          color: Colors.green
+        );
+
         Navigator.pop(context);
 
-      }
-      on FirebaseAuthException catch (e) {
+      } on FirebaseAuthException catch (e) {
         if (!mounted) return;
         setState(() => _isLoading = false);
 
         String missatge;
         switch (e.code) {
           case 'user-not-found':
-            missatge = "No hi ha cap usuari registrat amb aquest correu";
+            missatge = "No hi ha cap compte amb aquest correu.";
             break;
           case 'invalid-email':
-            missatge = "L'adreça de correu no és vàlida";
+            missatge = "El format del correu no és vàlid.";
             break;
           default:
-            missatge = "Error: ${e.message}";
+            missatge = "No s'ha pogut enviar l'enllaç.";
         }
         showSnackBar(context, missatge, color: Colors.red);
-      }
-      catch (e) {
+      } catch (e) {
         if (!mounted) return;
         setState(() => _isLoading = false);
-        showSnackBar(context, "S'ha produït un error inesperat");
+        showSnackBar(context, "Error inesperat.", color: Colors.red);
       }
     }
   }
@@ -75,17 +77,26 @@ class _NovaContraState extends State<NovaContra> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Recupera't"),
+        title: const Text("Recuperar contrasenya"),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 25),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AppStyles.sizedBoxHeight40,
-
+              const Icon(Icons.lock_reset, size: 80, color: Colors.grey),
+              AppStyles.sizedBoxHeight20,
+              const Text(
+                "T'enviarem un correu electrònic amb un enllaç per restablir la teva contrasenya.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+              AppStyles.sizedBoxHeight40,
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -93,20 +104,17 @@ class _NovaContraState extends State<NovaContra> {
                   labelText: 'Correu electrònic',
                   prefixIcon: Icon(Icons.email),
                 ),
-                validator: (val) => (val == null || val.isEmpty) ? 'Introdueix el teu email' : null,
+                validator: (val) => (val == null || val.isEmpty) ? 'Escriu el teu email' : null,
               ),
-
               AppStyles.sizedBoxHeight40,
-
               _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: _handleResetPassword,
                     style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(200, 50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      minimumSize: const Size(double.infinity, 50),
                     ),
-                    child: const Text("Envia'm l'enllaç"),
+                    child: const Text("Enviar enllaç"),
                   ),
             ],
           ),

@@ -31,7 +31,7 @@ class AppStyles {
   );
 
   static const benvinguda = TextStyle(
-    fontSize: 125,
+    fontSize: 105,
     color: Colors.black,
     fontWeight: FontWeight.bold
   );
