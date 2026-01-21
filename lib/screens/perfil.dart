@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/user_model.dart';
 import '../firebase/auth_service.dart';
 import '../utils/show_snack_bar.dart';
+import '../styles/app_styles.dart';
 
 class Perfil extends StatefulWidget {
   const Perfil({super.key});
@@ -25,8 +26,15 @@ class _PerfilState extends State<Perfil> {
 
   final TextEditingController _nomController = TextEditingController();
   final TextEditingController _edatController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
+
   List<String> _interessosSeleccionats = [];
 
+  // Variables noves
+  String _sexe = '';
+  String _busco = '';
+
+  // Variables existents
   String _fuma = '';
   String _beu = '';
   String _exercici = '';
@@ -35,12 +43,12 @@ class _PerfilState extends State<Perfil> {
   String _volFills = '';
   String _alimentacio = '';
 
-  final List<String> _opcionsInteressos = [
+  final List<String> _interessos = [
     'Castells', 'Pintar', 'Muntanya', 'Cuina', 'Cine', 'Series', 'Gimnàs',
-    'Vi - Cava', 'Lectura', 'Escalada', 'Música', 'Viatjar', 'Museus', 'Cantar', 'Ballar',
-    'Fotografia', 'Videojocs', 'Tecnologia', 'Ioga', 'Atletisme', 'Ciclisme', 'Cartes',
-    'Gastronomia', 'Teatre', 'Escacs', 'Tenis', 'Historia', 'Politica', 'Animals',
-    'Jardineria', 'Idiomes', 'Voluntariat', 'Platja', 'Esquí', 'Bricolatge', 'Pàdel'
+    'Vins', 'Lectura', 'Escalada', 'Música', 'Viatjar', 'Museus', 'Cantar', 'Ballar',
+    'Fotos', 'Jocs', 'Dev', 'Ioga', 'Córrer', 'Bici', 'Cartes',
+    'Futbol', 'Teatre', 'Escacs', 'Tenis', 'Història', 'Política', 'Animals',
+    'Plantes', 'Idiomes', 'Social', 'Platja', 'Esquí', 'Bàsquet', 'Pàdel'
   ];
 
   @override
@@ -49,16 +57,26 @@ class _PerfilState extends State<Perfil> {
     _carregarPerfil();
   }
 
+  @override
+  void dispose() {
+    _nomController.dispose();
+    _edatController.dispose();
+    _passController.dispose();
+    super.dispose();
+  }
+
   Future<void> _carregarPerfil() async {
     if (_uid == null) return;
     try {
       final doc = await FirebaseFirestore.instance.collection('users').doc(_uid).get();
+      if (!mounted) return;
+
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         setState(() {
           _user = UserModel.fromMap(data);
           _nomController.text = data['nom'] ?? '';
-          _edatController.text = (_user?.edat != null && _user!.edat != 0) ? _user!.edat.toString() : '';
+          _edatController.text = (data['edat'] != null && data['edat'] != 0) ? data['edat'].toString() : '';
           _interessosSeleccionats = List<String>.from(data['interessos'] ?? []);
 
           List<String> savedPhotos = List<String>.from(data['photoUrls'] ?? []);
@@ -67,6 +85,8 @@ class _PerfilState extends State<Perfil> {
             _photos[i] = savedPhotos[i];
           }
 
+          _sexe = data['sexe'] ?? '';
+          _busco = data['busco'] ?? '';
           _fuma = data['fuma'] ?? '';
           _beu = data['beu'] ?? '';
           _exercici = data['exercici'] ?? '';
@@ -74,17 +94,18 @@ class _PerfilState extends State<Perfil> {
           _fills = data['fills'] ?? '';
           _volFills = data['volFills'] ?? '';
           _alimentacio = data['alimentacio'] ?? '';
-          _isInitialLoading = false;
         });
       }
     } catch (e) {
-      setState(() => _isInitialLoading = false);
+      if (mounted) showSnackBar(context, "Error en carregar les dades");
+    } finally {
+      if (mounted) setState(() => _isInitialLoading = false);
     }
   }
 
   Future<void> _pickImage(int index) async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 50);
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() => _photos[index] = picked);
     }
   }
@@ -99,6 +120,8 @@ class _PerfilState extends State<Perfil> {
           'nom': _nomController.text.trim(),
           'edat': int.tryParse(_edatController.text) ?? 0,
           'interessos': _interessosSeleccionats,
+          'sexe': _sexe,
+          'busco': _busco,
           'fuma': _fuma,
           'beu': _beu,
           'exercici': _exercici,
@@ -120,6 +143,99 @@ class _PerfilState extends State<Perfil> {
     }
   }
 
+  void _confirmarEliminacio() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Esborrar compte?"),
+        content: const Text("Acció permanent.\nS'esborraran les teves dades."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel·lar")),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _mostrarDialegContrasenya();
+            },
+            child: const Text("Continuar", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarDialegContrasenya() {
+  final TextEditingController localPassController = TextEditingController();
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: const Text("Seguretat"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text("Introdueix la contrasenya per confirmar l'eliminació."),
+          const SizedBox(height: 15),
+          TextField(
+            controller: localPassController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: "Contrasenya",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () async {
+                final email = FirebaseAuth.instance.currentUser?.email;
+                if (email != null) {
+                  try {
+                    await _auth.sendPasswordReset(email);
+                    if (mounted) {
+                      showSnackBar(context, "Correu enviat a $email", color: Colors.blue);
+                    }
+                  } catch (e) {
+                    if (mounted) showSnackBar(context, "Error en enviar el correu", color: Colors.red);
+                  }
+                }
+              },
+              child: const Text("He oblidat la contrasenya?", style:
+              AppStyles.oblidatContra),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            localPassController.dispose();
+            Navigator.pop(context);
+          },
+          child: const Text("Cancel·lar"),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            if (localPassController.text.isEmpty) return;
+            try {
+              await _auth.reauthenticateAndDelete(localPassController.text);
+              localPassController.dispose();
+              if (mounted) Navigator.pop(context);
+            } catch (e) {
+              if (mounted) showSnackBar(context, "Contrasenya incorrecta", color: Colors.red);
+            }
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          child: const Text("Esborrar definitivament", style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  ).then((_) {
+    localPassController.dispose();
+  });
+}
+
   Widget _buildPhotoTile(int index) {
     dynamic photo = _photos[index];
     return GestureDetector(
@@ -129,10 +245,10 @@ class _PerfilState extends State<Perfil> {
           color: Colors.grey[200],
           borderRadius: BorderRadius.circular(10),
           image: photo != null
-            ? DecorationImage(
-                image: photo is XFile ? FileImage(File(photo.path)) : NetworkImage(photo) as ImageProvider,
-                fit: BoxFit.cover)
-            : null,
+              ? DecorationImage(
+                  image: photo is XFile ? FileImage(File(photo.path)) : NetworkImage(photo) as ImageProvider,
+                  fit: BoxFit.cover)
+              : null,
         ),
         child: photo == null ? const Icon(Icons.add_a_photo, color: Colors.grey) : null,
       ),
@@ -160,6 +276,7 @@ class _PerfilState extends State<Perfil> {
   @override
   Widget build(BuildContext context) {
     if (_isInitialLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
     return SafeArea(
       child: Scaffold(
         body: SingleChildScrollView(
@@ -170,13 +287,21 @@ class _PerfilState extends State<Perfil> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10),
+                    crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10),
                 itemCount: 4,
                 itemBuilder: (context, index) => _buildPhotoTile(index),
               ),
               const SizedBox(height: 25),
               TextField(controller: _nomController, decoration: const InputDecoration(labelText: "Nom")),
               TextField(controller: _edatController, decoration: const InputDecoration(labelText: "Edat"), keyboardType: TextInputType.number),
+              const SizedBox(height: 25),
+
+              // Secció nova: Identitat i Intencions
+              const Align(alignment: Alignment.centerLeft, child: Text("Identitat i Intencions", style: TextStyle(fontWeight: FontWeight.bold))),
+              const SizedBox(height: 10),
+              _buildDropdown("Sóc...", _sexe, ['Home', 'Dona'], (v) => setState(() => _sexe = v!)),
+              _buildDropdown("Busco...", _busco, ['Amistat', 'Estabilitat', 'Poliamor', 'Diversió'], (v) => setState(() => _busco = v!)),
+
               const SizedBox(height: 25),
               const Align(alignment: Alignment.centerLeft, child: Text("Estil de vida", style: TextStyle(fontWeight: FontWeight.bold))),
               const SizedBox(height: 10),
@@ -186,7 +311,8 @@ class _PerfilState extends State<Perfil> {
               _buildDropdown("Tens animals?", _animals, ['No', 'Gat', 'Gos', 'Altres'], (v) => setState(() => _animals = v!)),
               _buildDropdown("Tens fills?", _fills, ['No', 'Sí'], (v) => setState(() => _fills = v!)),
               _buildDropdown("Vols fills?", _volFills, ['No', 'Sí', 'No ho sé'], (v) => setState(() => _volFills = v!)),
-              _buildDropdown("Alimentacio?", _alimentacio, ['De tot', 'Vegetarià/ana', 'Vegà/ana', 'Celíac/a', 'Altres'], (v) => setState(() => _alimentacio = v!)),
+              _buildDropdown("Alimentació?", _alimentacio, ['De tot', 'Vegetarià/ana', 'Vegà/ana', 'Celíac/a', 'Altres'], (v) => setState(() => _alimentacio = v!)),
+
               const SizedBox(height: 25),
               const Align(alignment: Alignment.centerLeft, child: Text("Interessos", style: TextStyle(fontWeight: FontWeight.bold))),
               const SizedBox(height: 15),
@@ -199,9 +325,9 @@ class _PerfilState extends State<Perfil> {
                   mainAxisSpacing: 10,
                   childAspectRatio: 1.0,
                 ),
-                itemCount: _opcionsInteressos.length,
+                itemCount: _interessos.length,
                 itemBuilder: (context, index) {
-                  final interes = _opcionsInteressos[index];
+                  final interes = _interessos[index];
                   final seleccionat = _interessosSeleccionats.contains(interes);
                   return GestureDetector(
                     onTap: () {
@@ -210,19 +336,23 @@ class _PerfilState extends State<Perfil> {
                       });
                     },
                     child: Container(
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: seleccionat ? Colors.orange[100] : Colors.grey[100],
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: seleccionat ? Colors.orange : Colors.transparent, width: 2),
                       ),
                       child: Center(
-                        child: Text(
-                          interes,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: seleccionat ? FontWeight.bold : FontWeight.normal,
-                            color: seleccionat ? Colors.orange[900] : Colors.black87,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            interes,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: seleccionat ? FontWeight.bold : FontWeight.normal,
+                              color: seleccionat ? Colors.orange[900] : Colors.black87,
+                            ),
                           ),
                         ),
                       ),
@@ -241,9 +371,9 @@ class _PerfilState extends State<Perfil> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton.icon(
-                    onPressed: () => _auth.signOut(),
-                    icon: const Icon(Icons.logout, color: Colors.grey),
-                    label: const Text("Tancar sessió", style: TextStyle(color: Colors.grey, fontSize: 18)),
+                    onPressed: _confirmarEliminacio,
+                    icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
+                    label: const Text("Esborrar compte", style: TextStyle(color: Colors.redAccent, fontSize: 16)),
                   ),
                 ],
               ),

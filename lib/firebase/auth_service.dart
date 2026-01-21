@@ -19,8 +19,11 @@ class AuthService {
     );
 
     if (credential.user != null) {
-      await _firestore.collection('users').doc(credential.user!.uid).set({
-        'uid': credential.user!.uid,
+      String uid = credential.user!.uid;
+
+      // 1. Creem el perfil de l'usuari a la col·lecció 'users'
+      await _firestore.collection('users').doc(uid).set({
+        'uid': uid,
         'email': email,
         'nom': nom,
         'edat': 0,
@@ -33,6 +36,13 @@ class AuthService {
         'fills': '',
         'volFills': '',
         'alimentacio': '',
+      });
+
+      // 2. Creem el registre legal a la col·lecció 'acceptacions_normativa'
+      await _firestore.collection('acceptacions_normativa').doc(uid).set({
+        'uid': uid,
+        'acceptat': true,
+        'data_acceptacio': FieldValue.serverTimestamp(),
       });
     }
     return credential;
@@ -49,17 +59,24 @@ class AuthService {
   }) async {
     List<String> finalUrls = [];
 
-    for (var item in photos) {
+    for (int i = 0; i < photos.length; i++) {
+      var item = photos[i];
+
       if (item is XFile) {
-        String fileName = "${DateTime.now().millisecondsSinceEpoch}_${item.name}";
+        String fileName = "photo_$i.jpg";
         Reference ref = _storage.ref().child('users').child(uid).child(fileName);
 
         final bytes = await item.readAsBytes();
-        await ref.putData(bytes);
+
+        await ref.putData(
+          bytes,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
 
         String url = await ref.getDownloadURL();
         finalUrls.add(url);
-      } else if (item is String) {
+      }
+      else if (item is String) {
         finalUrls.add(item);
       }
     }
@@ -70,6 +87,39 @@ class AuthService {
       data,
       SetOptions(merge: true)
     );
+  }
+
+  Future<void> reauthenticateAndDelete(String password) async {
+    User? user = _auth.currentUser;
+    if (user == null || user.email == null) return;
+
+    AuthCredential credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: password,
+    );
+
+    await user.reauthenticateWithCredential(credential);
+    await deleteUserAccount();
+  }
+
+  Future<void> deleteUserAccount() async {
+    User? user = _auth.currentUser;
+    if (user == null) return;
+
+    String uid = user.uid;
+
+    try {
+      final ListResult result = await _storage.ref().child('users').child(uid).listAll();
+      for (var file in result.items) {
+        await file.delete();
+      }
+
+      await _firestore.collection('users').doc(uid).delete();
+      await _firestore.collection('acceptacions_normativa').doc(uid).delete();
+      await user.delete();
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> signOut() async => await _auth.signOut();

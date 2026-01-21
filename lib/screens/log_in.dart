@@ -43,48 +43,16 @@ class _LogInState extends State<LogIn> {
         setState(() => _isLoading = false);
 
         if (user != null) {
-          final hora = DateTime.now().hour;
-          String salutacio = (hora >= 6 && hora < 13) ?
-            "Bon dia!" : (hora >= 13 && hora < 21) ? "Bona tarda!" : "Bona nit!";
-
-          showSnackBar(context, salutacio, color: Colors.amberAccent);
-
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const BottomNavBar()),
           );
         }
-      }
-      on FirebaseAuthException catch (e) {
+      } on FirebaseAuthException catch (e) {
         if (!mounted) return;
         setState(() => _isLoading = false);
-        String missatgeError;
-
-        switch (e.code) {
-          case 'invalid-credential':
-            missatgeError = "El correu o la contrasenya no són correctes.";
-            break;
-          case 'user-not-found':
-            missatgeError = "No existeix cap usuari amb aquest correu.";
-            break;
-          case 'wrong-password':
-            missatgeError = "La contrasenya és incorrecta.";
-            break;
-          case 'invalid-email':
-            missatgeError = "El format del correu no és vàlid.";
-            break;
-          case 'user-disabled':
-            missatgeError = "Aquest compte ha estat desactivat.";
-            break;
-          case 'too-many-requests':
-            missatgeError = "Massa intents. Torna-ho a provar més tard.";
-            break;
-          default:
-            missatgeError = "Error en l'autenticació: ${e.code}";
-        }
-        showSnackBar(context, missatgeError, color: Colors.red);
-      }
-      catch (e) {
+        showSnackBar(context, "Error d'accés", color: Colors.red);
+      } catch (e) {
         if (!mounted) return;
         setState(() => _isLoading = false);
         showSnackBar(context, "S'ha produït un error inesperat.", color: Colors.red);
@@ -95,61 +63,120 @@ class _LogInState extends State<LogIn> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              AppStyles.sizedBoxHeight80,
-              const Center(child: FittedBox(child: Text('Hola!', style: AppStyles.benvinguda))),
-              AppStyles.sizedBoxHeight20,
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                ),
-                validator: (val) => (val == null || val.isEmpty) ? 'Camp obligatori' : null,
-              ),
-              AppStyles.sizedBoxHeight20,
-              TextFormField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Contrasenya',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+      backgroundColor: Colors.grey[50],
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                //const Icon(Icons.favorite_rounded, size: 80, color: Colors.orangeAccent),
+                const SizedBox(height: 10),
+                const Text('Hola!', style: AppStyles.benvinguda),
+                const SizedBox(height: 40),
+
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        validator: (val) => (val == null || val.isEmpty) ? 'Camp obligatori' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
+                          labelText: 'Contrasenya',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        validator: (val) => (val == null || val.isEmpty) ? 'Introdueix la contrasenya' : null,
+                      ),
+                    ],
                   ),
                 ),
-                validator: (val) => (val == null || val.isEmpty) ? 'Introdueix la contrasenya' : null,
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => NovaContra(emailPrevi: _emailController.text.trim())));
-                  },
-                  child: const Text("Has oblidat la contrasenya?", style: AppStyles.oblidat),
-                ),
-              ),
-              AppStyles.sizedBoxHeight20,
-              _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _login,
-                    style: ElevatedButton.styleFrom(minimumSize: const Size(100, 50)),
-                    child: const Text('Entrar'),
+
+                const SizedBox(height: 12),
+
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => NovaContra(emailPrevi: _emailController.text.trim())));
+                    },
+                    child: const Text("Has oblidat la contrasenya?",
+                      style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w600)),
                   ),
-              AppStyles.sizedBoxHeight20,
-              TextButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUp())),
-                child: const Text("No tens compte?", style: AppStyles.noCompte),
-              ),
-            ],
+                ),
+
+                const SizedBox(height: 32),
+
+                _isLoading
+                  ? const CircularProgressIndicator(color: Colors.orange)
+                  : ElevatedButton(
+                      onPressed: _login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orangeAccent,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 56),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Entrar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
+
+                const SizedBox(height: 32),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("No tens compte? ", style: TextStyle(color: Colors.grey)),
+                    GestureDetector(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUp())),
+                      child: const Text(
+                        "Crea'l!",
+                        style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

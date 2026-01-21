@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../styles/app_styles.dart';
-import '../utils/bottom_nav_bar.dart';
 import '../utils/show_snack_bar.dart';
-import 'gent.dart';
+import 'log_in.dart';
 
 class Normativa extends StatefulWidget {
   const Normativa({super.key});
@@ -21,16 +21,8 @@ class _NormativaState extends State<Normativa> {
   @override
   void initState() {
     super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      showSnackBar(context, "Llegeix les normes per continuar (25s).", color: Colors.orange);
-    });
-    _timer = Timer(const Duration(seconds: 25), () {
-      if (mounted) {
-        setState(() {
-          _canInteract = true;
-        });
-      }
+    _timer = Timer(const Duration(seconds: 10), () {
+      if (mounted) setState(() => _canInteract = true);
     });
   }
 
@@ -41,97 +33,168 @@ class _NormativaState extends State<Normativa> {
   }
 
   Future<void> _startApp() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isFirstRun', false);
+    final user = FirebaseAuth.instance.currentUser;
 
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const BottomNavBar()),
+        MaterialPageRoute(builder: (context) => const LogIn()),
       );
+    }
+
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('acceptacions_normativa')
+            .doc(user.uid)
+            .set({
+          'uid': user.uid,
+          'data_acceptacio': FieldValue.serverTimestamp(),
+          'acceptat': true,
+        });
+      }
+      catch (e) {
+        if (mounted) showSnackBar(context, "Error al registrar l'acceptació.");
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Normativa i Privadesa'),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('1. Benvinguda a Catalanets', style: AppStyles.normativaTitol),
-                    Text('Aquesta app és un espai segur per catalanoparlants. L’ús de l’aplicació implica l’acceptació d’aquestes normes.', style: AppStyles.normativaText),
-                    AppStyles.sizedBoxHeight20,
-                    Text('2. Respecte i Civisme', style: AppStyles.normativaTitol),
-                    Text('No es permetrà cap tipus de falta de respecte, discriminació o contingut inadequat als xats o espais comuns.', style: AppStyles.normativaText),
-                    AppStyles.sizedBoxHeight20,
-                    Text('3. Protecció de Dades (RGPD)', style: AppStyles.normativaTitol),
-                    Text('Les teves dades es guarden de forma segura a Firebase. En cap moment compartirem la teva informació amb tercers.', style: AppStyles.normativaText),
-                    AppStyles.sizedBoxHeight20,
-                    Text('4. Responsabilitat', style: AppStyles.normativaTitol),
-                    Text('L’usuari és responsable del contingut que publica i comparteix amb altres usuaris.', style: AppStyles.normativaText),
-                    AppStyles.sizedBoxHeight30,
-                    Text('Qualsevol usuari podrà bloquejar un usuari que incompleixi la normativa.', style: AppStyles.potBloquejar)
-                  ],
-                ),
-              ),
-            ),
-            AppStyles.sizedBoxHeight30,
-            Padding(
-              padding: const EdgeInsets.all(5),
-              child: Center(
-                child: IntrinsicWidth(
-                  child: GestureDetector(
-                    onTap: _canInteract? null
-                        : () => showSnackBar(
-                              context,
-                              "Si us plau, llegeix les normes.",
-                              color: Colors.orange,
-                            ),
-                    child: Opacity(
-                      opacity: _canInteract ? 1.0 : 0.5,
-                      child: CheckboxListTile(
-                        title: const Text(
-                          "Accepto les condicions",
-                          style: AppStyles.okNormes,
+    final MediaQueryData mqd = MediaQuery.of(context).copyWith(
+      textScaler: const TextScaler.linear(1.0),
+    );
+
+    return MediaQuery(
+      data: mqd,
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('Normativa i Privadesa')
+          )
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const _NormaItem(
+                          titol: '1. Edat mínima d\'ús',
+                          text: 'L\'edat mínima legal és 18 anys.'
                         ),
-                        value: _isAccepted,
-                        onChanged: _canInteract
-                            ? (bool? value) {
-                                setState(() {
-                                  _isAccepted = value ?? false;
-                                });
-                                if (_isAccepted) {
-                                  _startApp();
-                                }
-                              }
-                            : null,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        activeColor: Colors.orange,
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                        AppStyles.sizedBoxHeight20,
+                        const _NormaItem(
+                          titol: '2. Respecte',
+                          text: 'No es permeten insults, bully o l\'odi.\nCompartim una bona experiència.'
+                        ),
+                        AppStyles.sizedBoxHeight20,
+                        const _NormaItem(
+                          titol: '3. Comunitat',
+                          text: 'Espai per catalanoparlants.'
+                        ),
+                        AppStyles.sizedBoxHeight20,
+                        const _NormaItem(
+                          titol: '3. Contingut Prohibit',
+                          text: 'Violència o material sexual.'
+                        ),
+                        AppStyles.sizedBoxHeight20,
+                        const _NormaItem(
+                          titol: '4. Protecció de Dades (RGPD)',
+                          text: 'Les dades es guarden a Google.\nS\'esborren en eliminar el perfil.'
+                        ),
+                        AppStyles.sizedBoxHeight20,
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0),
+                          child: Center(
+                            child: Text(
+                              'Qualsevol usuari podrà marcar el perfil que '
+                                  'incompleixi la normativa i serà esborrat indefinidament.',
+                              style: AppStyles.normativaBold.copyWith(fontSize: 21),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
+                AppStyles.sizedBoxHeight40,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        "Accepto les condicions",
+                        style: AppStyles.okNormes.copyWith(fontSize: 24),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: _canInteract
+                        ? null
+                        : () => showSnackBar(context, "Llegeix les normes."),
+                      child: Checkbox(
+                        value: _isAccepted,
+                        onChanged: _canInteract
+                            ? (bool? value) {
+                                setState(() => _isAccepted = value ?? false);
+                                if (_isAccepted) _startApp();
+                              }
+                            : null,
+                        activeColor: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+                AppStyles.sizedBoxHeight20,
+              ],
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _NormaItem extends StatelessWidget {
+  final String titol;
+  final String text;
+  const _NormaItem({required this.titol, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: Text(titol, style: AppStyles.normativaTitol.copyWith(fontSize: 24))
+        ),
+        const SizedBox(height: 2),
+        Text(
+          text,
+          style: AppStyles.normativaText.copyWith(fontSize: 20),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis
+        ),
+      ],
     );
   }
 }

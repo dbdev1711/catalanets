@@ -14,7 +14,7 @@ class AppStyles {
   );
 
   static const normativaTitol = TextStyle(
-    fontSize: 19,
+    fontSize: 18,
     color: Colors.black,
     fontWeight: FontWeight.bold
   );
@@ -30,15 +30,21 @@ class AppStyles {
     color: Colors.black,
   );
 
+  static const normativaBold = TextStyle(
+    fontSize: 16,
+    color: Colors.red,
+    fontWeight: FontWeight.bold
+  );
+
   static const benvinguda = TextStyle(
     fontSize: 105,
-    color: Colors.black,
+    color: Colors.orangeAccent,
     fontWeight: FontWeight.bold
   );
 
   static const nouCompte = TextStyle(
     fontSize: 65,
-    color: Colors.black,
+    color: Colors.orangeAccent,
     fontWeight: FontWeight.bold
   );
 
@@ -52,7 +58,7 @@ class AppStyles {
     fontWeight: FontWeight.bold
   );
 
-  static const oblidat = TextStyle(
+  static const oblidatContra = TextStyle(
     fontSize: 16,
     color: Colors.blue,
     decoration: TextDecoration.underline,
@@ -60,7 +66,6 @@ class AppStyles {
   );
 
 
-  static const sizedBoxHeight0 = SizedBox(height: 0);
   static const sizedBoxHeight10 = SizedBox(height: 10);
   static const sizedBoxHeight20 = SizedBox(height: 20);
   static const sizedBoxHeight30 = SizedBox(height: 30);
